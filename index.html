@@ -20,7 +20,6 @@
         .font-display {
             font-family: 'Fredoka', sans-serif;
         }
-        /* Custom Animations */
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-6px); }
@@ -42,7 +41,6 @@
         .glow-emerald {
             animation: pulseGlow 2s infinite;
         }
-        /* Custom Scrollbar for Study Sheet Modal */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -71,7 +69,7 @@
                 </div>
                 <div>
                     <h1 class="font-display text-lg sm:text-xl font-bold text-slate-900 leading-tight">Frog Anatomy Lab</h1>
-                    <p class="text-xs text-emerald-700 font-medium">Word-for-Word Function Mastery</p>
+                    <p class="text-xs text-emerald-700 font-medium">Categorized Function Mastery</p>
                 </div>
             </div>
 
@@ -109,6 +107,12 @@
             </div>
         </div>
 
+        <!-- Category Filter Bar -->
+        <div class="bg-emerald-50/80 border-t border-emerald-100 px-4 py-2">
+            <div class="max-w-5xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold no-scrollbar" id="category-filter-container">
+            </div>
+        </div>
+
         <!-- Progress Bar -->
         <div class="w-full bg-emerald-100/70 h-2">
             <div id="progress-bar" class="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 h-2 transition-all duration-500 ease-out" style="width: 4.34%;"></div>
@@ -128,8 +132,8 @@
                 </div>
             </div>
             <div class="text-right shrink-0">
-                <span class="inline-block bg-emerald-100 text-emerald-800 font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full">
-                    Card <span id="current-index-display">1</span> of <span id="total-questions-display">23</span>
+                <span id="card-position-badge" class="inline-block bg-emerald-100 text-emerald-800 font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full">
+                    Card <span id="current-index-display">1</span> of <span id="total-questions-display">25</span>
                 </span>
             </div>
         </div>
@@ -139,15 +143,14 @@
             
             <!-- Question Header (Structure) -->
             <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-6 sm:p-8 text-white relative overflow-hidden">
-                <!-- Decorative background SVG -->
                 <svg class="absolute right-0 bottom-0 opacity-10 w-40 h-40 pointer-events-none" viewBox="0 0 200 200" fill="currentColor">
                     <circle cx="150" cy="150" r="100" />
                     <circle cx="60" cy="180" r="60" />
                 </svg>
 
-                <div class="flex items-center justify-between gap-2 mb-2">
-                    <span class="uppercase tracking-widest text-xs font-bold text-emerald-200 bg-emerald-900/30 px-3 py-1 rounded-full">
-                        Anatomical Structure
+                <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                    <span id="category-tag" class="uppercase tracking-widest text-xs font-bold text-emerald-200 bg-emerald-900/30 px-3 py-1 rounded-full">
+                        Digestive System
                     </span>
                     <span id="question-status-badge" class="text-xs font-semibold px-3 py-1 rounded-full bg-white/15 text-white">
                         Unanswered
@@ -242,17 +245,13 @@
                         <!-- Official Function with Green (Correct) & Red (Missed) Highlighting -->
                         <div>
                             <p class="text-xs font-semibold text-slate-500 mb-2">Expected Function (Green = Typed Correctly, Red = Missed):</p>
-                            <div id="graded-reference-words" class="leading-relaxed text-base sm:text-lg font-medium flex flex-wrap gap-1.5">
-                                <!-- Injected dynamically -->
-                            </div>
+                            <div id="graded-reference-words" class="leading-relaxed text-base sm:text-lg font-medium flex flex-wrap gap-1.5"></div>
                         </div>
 
                         <!-- User's Typed Submission Comparison -->
                         <div class="pt-3 border-t border-slate-200/80">
                             <p class="text-xs font-semibold text-slate-500 mb-2">Your Typed Answer (Green = Matched, Red = Extra/Unmatched):</p>
-                            <div id="graded-user-words" class="leading-relaxed text-sm sm:text-base flex flex-wrap gap-1.5">
-                                <!-- Injected dynamically -->
-                            </div>
+                            <div id="graded-user-words" class="leading-relaxed text-sm sm:text-base flex flex-wrap gap-1.5"></div>
                         </div>
                     </div>
 
@@ -282,7 +281,6 @@
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-semibold text-slate-500 hidden sm:inline">Jump to:</span>
                     <select id="question-selector" onchange="jumpToQuestion(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 max-w-[200px] sm:max-w-xs truncate">
-                        <!-- Options populated via JS -->
                     </select>
                 </div>
 
@@ -297,7 +295,7 @@
             </div>
         </section>
 
-        <!-- Final Summary & Full Retry Screen (Hidden until triggered or completed) -->
+        <!-- Final Summary & Full Retry Screen -->
         <section id="summary-section" class="hidden bg-white rounded-3xl shadow-xl border border-emerald-100 p-6 sm:p-10 text-center space-y-6 animate-pop">
             <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-4xl shadow-lg animate-float">
                 🏆
@@ -339,9 +337,7 @@
             <!-- Per-Question Review List -->
             <div class="max-w-3xl mx-auto text-left bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-200">
                 <h3 class="font-display font-bold text-lg text-slate-800 mb-3">Structure-by-Structure Breakdown</h3>
-                <div id="summary-breakdown-list" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-                    <!-- Populated dynamically -->
-                </div>
+                <div id="summary-breakdown-list" class="space-y-2.5 max-h-80 overflow-y-auto pr-1"></div>
             </div>
 
             <!-- Full Retry & Return Buttons -->
@@ -366,157 +362,73 @@
                     <span class="text-2xl">🐸</span>
                     <div>
                         <h3 class="font-display font-bold text-xl text-slate-900">Frog Internal Anatomy Reference Sheet</h3>
-                        <p class="text-xs text-slate-500">Review the 23 structures and exact functions anytime.</p>
+                        <p class="text-xs text-slate-500">Review structures categorized by organ systems anytime.</p>
                     </div>
                 </div>
                 <button onclick="toggleReferenceModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold cursor-pointer">
                     ✕
                 </button>
             </div>
-            <div class="p-5 sm:p-6 overflow-y-auto space-y-3" id="reference-list-container">
-                <!-- Populated dynamically -->
-            </div>
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-3" id="reference-list-container"></div>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // 1. DATASET: ALL 23 FROG ANATOMY STRUCTURES
+        // 1. DATASET: STRUCTURES BY ORGAN SYSTEM
+        // (Parentheses kept in answers as requested)
         // ==========================================
         const ANATOMY_DATA = [
-            {
-                id: 1,
-                structure: "Pericardial Sac",
-                func: "A double-layered membranous sac that encloses and protects the heart. It reduces friction during heart contractions."
-            },
-            {
-                id: 2,
-                structure: "Heart",
-                func: "Pumps blood throughout the body. Frogs have a three-chambered heart consisting of two atria and one ventricle."
-            },
-            {
-                id: 3,
-                structure: "Lung",
-                func: "Performs gas exchange by absorbing oxygen and releasing carbon dioxide. Frogs also use their skin and buccal cavity for respiration."
-            },
-            {
-                id: 4,
-                structure: "Liver",
-                func: "Produces bile, stores glycogen and nutrients, detoxifies harmful substances, and participates in metabolism."
-            },
-            {
-                id: 5,
-                structure: "Gall Bladder",
-                func: "Stores and concentrates bile produced by the liver and releases it into the duodenum during digestion."
-            },
-            {
-                id: 6,
-                structure: "Hepato-duodenal Omentum",
-                func: "A thin peritoneal membrane connecting the liver to the duodenum. It supports blood vessels, nerves, and bile ducts serving digestive organs."
-            },
-            {
-                id: 7,
-                structure: "Mesenterium (Mesentery Proper)",
-                func: "A membrane that suspends the intestines from the dorsal body wall and carries blood vessels, lymphatics, and nerves to the intestines."
-            },
-            {
-                id: 8,
-                structure: "Fat Bodies (Corpora Adiposa)",
-                func: "Yellow finger-like structures that store fat reserves during hibernation, estivation, and reproduction."
-            },
-            {
-                id: 9,
-                structure: "Pancreas",
-                func: "Produces digestive enzymes that enter the duodenum and hormones (insulin and glucagon) that regulate blood glucose levels."
-            },
-            {
-                id: 10,
-                structure: "Stomach",
-                func: "Temporarily stores food and initiates mechanical and chemical digestion through muscular contractions and gastric secretions."
-            },
-            {
-                id: 11,
-                structure: "Pyloric Constriction (Pyloric Sphincter)",
-                func: "Muscular valve controlling the passage of partially digested food (chyme) from the stomach into the duodenum."
-            },
-            {
-                id: 12,
-                structure: "Duodenum",
-                func: "The first part of the small intestine where bile and pancreatic enzymes mix with food to continue digestion."
-            },
-            {
-                id: 13,
-                structure: "Ileum",
-                func: "The second and longest portion of the small intestine. It is the primary site for absorption of digested nutrients."
-            },
-            {
-                id: 14,
-                structure: "Small Intestine",
-                func: "Completes digestion and absorbs nutrients into the bloodstream. Includes the duodenum and ileum in frogs."
-            },
-            {
-                id: 15,
-                structure: "Spleen",
-                func: "Filters blood, removes worn-out blood cells, stores blood, and contributes to immune functions."
-            },
-            {
-                id: 16,
-                structure: "Peritoneum",
-                func: "A thin serous membrane lining the body cavity and covering the organs. It protects organs and reduces friction between them."
-            },
-            {
-                id: 17,
-                structure: "Large Intestine (Colon/Rectum)",
-                func: "Absorbs water and salts from undigested material and transports fecal matter toward the cloaca."
-            },
-            {
-                id: 18,
-                structure: "Kidney",
-                func: "Filters blood, removes nitrogenous wastes, regulates water and electrolyte balance, and produces urine."
-            },
-            {
-                id: 19,
-                structure: "Adrenal Gland",
-                func: "Endocrine tissue associated with the kidneys that secretes hormones involved in stress responses and regulation of salt-water balance."
-            },
-            {
-                id: 20,
-                structure: "Testis",
-                func: "Produces sperm cells and male sex hormones involved in reproduction."
-            },
-            {
-                id: 21,
-                structure: "Urinary Bladder",
-                func: "Stores urine before it is discharged through the cloaca. It may also assist in water storage and reabsorption."
-            },
-            {
-                id: 22,
-                structure: "Cloaca",
-                func: "A common chamber receiving products from the digestive, urinary, and reproductive systems before elimination."
-            },
-            {
-                id: 23,
-                structure: "Cloacal Opening (Vent)",
-                func: "External opening through which feces, urine, and reproductive products are expelled from the body."
-            }
+            // --- Digestive System ---
+            { id: 1, category: "Digestive System", structure: "Liver", func: "Produces bile, stores glycogen and nutrients, detoxifies harmful substances, and participates in metabolism." },
+            { id: 2, category: "Digestive System", structure: "Gall Bladder", func: "Stores and concentrates bile produced by the liver and releases it into the duodenum during digestion." },
+            { id: 3, category: "Digestive System", structure: "Hepato-Duodenal Omentum", func: "A thin peritoneal membrane connecting the liver to the duodenum. It supports blood vessels, nerves, and bile ducts serving digestive organs." },
+            { id: 4, category: "Digestive System", structure: "Mesenterium (Mesentary Proper)", func: "A membrane that suspends the intenstines from the dorsal body wall and carries blood vessels, lymphatics, and nerves to the intestines." },
+            { id: 5, category: "Digestive System", structure: "Pancreas", func: "Produces digestive enzymes that enter the duodenum and hormones (insulin and glucagon) that regulate blood glucose levels." },
+            { id: 6, category: "Digestive System", structure: "Stomach", func: "Temporarily stores food and initiates mechanical and chemical digestion through muscular contractions and gastric secretions." },
+            { id: 7, category: "Digestive System", structure: "Pyloric Constriction (Pyloric Sphincter)", func: "Muscular valve controlling the passage of partially digested food (chyme) from the stomach into the duodem" },
+            { id: 8, category: "Digestive System", structure: "Duodenum", func: "The first part of the small intestine where bile and pancreatic enzymes mix with food to continue digestion." },
+            { id: 9, category: "Digestive System", structure: "Ileum", func: "The second and longest portion of the small intestine. It is the primary site for absorption of digested nutrients." },
+            { id: 10, category: "Digestive System", structure: "Small Intestine", func: "Completes digestion and absorbs nutrients into the bloodstream. Includes the duodenum and ileum in frogs." },
+            { id: 11, category: "Digestive System", structure: "Large Intestine (Colon/Rectum)", func: "Absorbs water and salts from undigested material and transports fecal matter toward the cloaca." },
+            { id: 12, category: "Digestive System", structure: "Cloaca", func: "A common chamber receiving products from the digestive, urinary, and reproductive systems before elimination." },
+            { id: 13, category: "Digestive System", structure: "Cloacal Opening (Vent)", func: "External opening through which feces, urine, and reproductive products are expelled from the body." },
+
+            // --- Circulatory System ---
+            { id: 14, category: "Circulatory System", structure: "Heart", func: "Pumps blood throughout the body. Frogs have a three-chambered heart consisting of two atria and one ventricle." },
+            { id: 15, category: "Circulatory System", structure: "Pericardial Sac", func: "A double-layered membranous sac that encloses and protects the heart. It reduces friction during heart contractions." },
+            { id: 16, category: "Circulatory System", structure: "Spleen", func: "Filters blood, removes worn-out blood cells, stores blood, and contributes to immune functions." },
+
+            // --- Respiratory System ---
+            { id: 17, category: "Respiratory System", structure: "Lung", func: "Performs gas exchange by absorbing oxygen and releasing carbon dioxide. Frogs also use their skin and buccal cavity for respiration." },
+            { id: 18, category: "Respiratory System", structure: "Peritoneum", func: "A thin serous membrane lining the body cavity and covering the organs. It protects organs and reduces friction between them." },
+
+            // --- Excretory System ---
+            { id: 19, category: "Excretory System", structure: "Kidney", func: "Filters blood, removes nitrogenous wastes, regulates water and electrolyte balance, and produces urine." },
+            { id: 20, category: "Excretory System", structure: "Urinary Bladder", func: "Stores urine before it is discharged through the cloaca. It may also assist in water storage and reabsorption." },
+
+            // --- Reproductive System ---
+            { id: 21, category: "Reproductive System", structure: "Testis", func: "Produces sperm cells and male sex hormones involved in reproduction." },
+            { id: 22, category: "Reproductive System", structure: "Fat Bodies (Corpora Adiposa)", func: "Yellow finger-like structures that store fat reserves during hibernation, estivation, and reproduction." },
+
+            // --- Endocrine System ---
+            { id: 23, category: "Endocrine System", structure: "Adrenal Gland", func: "Endocrine tissue associated with the kidneys that secretes hormones involved in stress responses and regulation of salt-water balance." }
         ];
 
         // ==========================================
         // 2. APPLICATION STATE
         // ==========================================
+        let currentCategory = "All Systems";
         let questions = [...ANATOMY_DATA];
         let currentIndex = 0;
         let isShuffled = false;
         let soundEnabled = true;
         let streak = 0;
         let bestStreak = 0;
-
-        // Stores user progress keyed by structure id:
-        // { earnedPoints, maxPoints, userRawText, refTokens, userTokens, submitted }
         let userProgress = {};
 
         // ==========================================
-        // 3. WEB AUDIO API SOUND EFFECTS (NO EXTERNAL URLS)
+        // 3. WEB AUDIO API SOUND EFFECTS
         // ==========================================
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -534,17 +446,15 @@
                 gain.connect(audioCtx.destination);
                 osc.start(audioCtx.currentTime + delay);
                 osc.stop(audioCtx.currentTime + delay + duration);
-            } catch (e) {
-                // Ignore audio errors if blocked by browser autoplay policy
-            }
+            } catch (e) {}
         }
 
         function playSuccessSound(perfect = false) {
-            playTone(523.25, 'sine', 0.15, 0);       // C5
-            playTone(659.25, 'sine', 0.15, 0.08);    // E5
-            playTone(783.99, 'sine', 0.25, 0.16);    // G5
+            playTone(523.25, 'sine', 0.15, 0);
+            playTone(659.25, 'sine', 0.15, 0.08);
+            playTone(783.99, 'sine', 0.25, 0.16);
             if (perfect) {
-                playTone(1046.50, 'triangle', 0.35, 0.24); // C6
+                playTone(1046.50, 'triangle', 0.35, 0.24);
             }
         }
 
@@ -559,23 +469,14 @@
         }
 
         // ==========================================
-        // 4. WORD TOKENIZATION & CASE-INSENSITIVE GRADING
+        // 4. WORD TOKENIZATION & GRADING
         // ==========================================
-        /**
-         * Normalizes a word for case-insensitive and punctuation-forgiving matching.
-         * Keeps internal hyphens (like "double-layered" or "three-chambered") or splits cleanly,
-         * while stripping leading/trailing punctuation like periods, commas, parentheses.
-         */
         function normalizeWord(word) {
             return word
                 .toLowerCase()
                 .replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
         }
 
-        /**
-         * Splits text into displayable word tokens while preserving original text for display
-         * and normalized form for matching.
-         */
         function tokenizeText(text) {
             if (!text || !text.trim()) return [];
             return text
@@ -588,22 +489,15 @@
                 .filter(t => t.norm.length > 0);
         }
 
-        /**
-         * Grades user's answer against the reference function.
-         * Uses frequency map + order-aware greedy matching so each matching word
-         * awards +1 point without double-counting repeated filler words unfairly.
-         */
         function gradeAnswer(userText, referenceText) {
             const refTokens = tokenizeText(referenceText);
             const userTokens = tokenizeText(userText);
 
-            // Count available normalized words in user's input
             const userWordCounts = {};
             userTokens.forEach(t => {
                 userWordCounts[t.norm] = (userWordCounts[t.norm] || 0) + 1;
             });
 
-            // Mark reference words as matched (true) or missed (false)
             let earnedPoints = 0;
             const gradedRef = refTokens.map(refTok => {
                 if (userWordCounts[refTok.norm] && userWordCounts[refTok.norm] > 0) {
@@ -615,7 +509,6 @@
                 }
             });
 
-            // Also mark user's typed words as matched vs extra/wrong
             const refWordCounts = {};
             refTokens.forEach(t => {
                 refWordCounts[t.norm] = (refWordCounts[t.norm] || 0) + 1;
@@ -642,19 +535,16 @@
         // 5. INITIALIZATION & UI RENDERING
         // ==========================================
         function initApp() {
+            buildCategoryFilters();
+            filterQuestionsByCategory("All Systems");
             populateReferenceModal();
-            populateQuestionSelector();
-            updateGlobalScoreboard();
-            renderCurrentQuestion();
 
-            // Live word counter on textarea input
             const inputEl = document.getElementById('user-answer-input');
             inputEl.addEventListener('input', () => {
                 const count = tokenizeText(inputEl.value).length;
                 document.getElementById('live-word-count').textContent = count;
             });
 
-            // Allow Ctrl+Enter or Cmd+Enter to submit quickly
             inputEl.addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                     e.preventDefault();
@@ -666,6 +556,47 @@
                     }
                 }
             });
+        }
+
+        function getCategories() {
+            const cats = ["All Systems"];
+            ANATOMY_DATA.forEach(item => {
+                if (!cats.includes(item.category)) cats.push(item.category);
+            });
+            return cats;
+        }
+
+        function buildCategoryFilters() {
+            const container = document.getElementById('category-filter-container');
+            const cats = getCategories();
+
+            container.innerHTML = cats.map(cat => {
+                const count = cat === "All Systems" ? ANATOMY_DATA.length : ANATOMY_DATA.filter(i => i.category === cat).length;
+                const isActive = currentCategory === cat;
+                const activeClass = isActive 
+                    ? 'bg-emerald-600 text-white shadow-sm' 
+                    : 'bg-white text-slate-700 hover:bg-emerald-100/60 border border-emerald-200';
+                
+                return `
+                    <button onclick="filterQuestionsByCategory('${cat}')" class="px-3.5 py-1.5 rounded-xl transition shrink-0 cursor-pointer font-semibold ${activeClass}">
+                        ${cat} <span class="opacity-75 text-[11px]">(${count})</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function filterQuestionsByCategory(cat) {
+            currentCategory = cat;
+            if (cat === "All Systems") {
+                questions = isShuffled ? [...ANATOMY_DATA].sort(() => Math.random() - 0.5) : [...ANATOMY_DATA];
+            } else {
+                const filtered = ANATOMY_DATA.filter(item => item.category === cat);
+                questions = isShuffled ? [...filtered].sort(() => Math.random() - 0.5) : [...filtered];
+            }
+            currentIndex = 0;
+            buildCategoryFilters();
+            populateQuestionSelector();
+            renderCurrentQuestion();
         }
 
         function getMaxPossiblePoints() {
@@ -685,32 +616,28 @@
             document.getElementById('max-possible-points').textContent = maxTotal;
             document.getElementById('streak-count').textContent = streak;
 
-            // Progress bar based on current position or completed count
-            const pct = ((currentIndex + 1) / questions.length) * 100;
+            const pct = questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 100;
             document.getElementById('progress-bar').style.width = `${pct}%`;
         }
 
         function renderCurrentQuestion() {
+            if (questions.length === 0) return;
             const q = questions[currentIndex];
             const saved = userProgress[q.id];
             const refWordCount = tokenizeText(q.func).length;
 
-            // Update card headers
             document.getElementById('current-index-display').textContent = currentIndex + 1;
             document.getElementById('total-questions-display').textContent = questions.length;
+            document.getElementById('category-tag').textContent = q.category;
             document.getElementById('structure-title').textContent = q.structure;
             document.getElementById('expected-word-count').textContent = refWordCount;
             document.getElementById('question-selector').value = currentIndex;
 
-            // Hide hint box on switch
             document.getElementById('hint-box').classList.add('hidden');
-
-            // Update Previous button state
             document.getElementById('btn-prev').disabled = currentIndex === 0;
 
-            // Update Next button text on last question
             const isLast = currentIndex === questions.length - 1;
-            document.getElementById('next-btn-label').textContent = isLast ? 'View Final Score' : 'Next Structure';
+            document.getElementById('next-btn-label').textContent = isLast ? 'View Summary' : 'Next Structure';
 
             const inputEl = document.getElementById('user-answer-input');
             const preSubmitActions = document.getElementById('pre-submit-actions');
@@ -718,7 +645,6 @@
             const statusBadge = document.getElementById('question-status-badge');
 
             if (saved && saved.submitted) {
-                // Already answered: show locked input and graded visual feedback
                 inputEl.value = saved.userRawText;
                 inputEl.disabled = true;
                 inputEl.classList.add('bg-slate-100', 'text-slate-600');
@@ -732,7 +658,6 @@
 
                 renderGradedFeedback(saved);
             } else {
-                // Unanswered or retried: enable fresh typing
                 inputEl.value = '';
                 inputEl.disabled = false;
                 inputEl.classList.remove('bg-slate-100', 'text-slate-600');
@@ -751,7 +676,7 @@
         }
 
         // ==========================================
-        // 6. SUBMITTING, GRADING & VISUAL FEEDBACK
+        // 6. SUBMITTING, GRADING & FEEDBACK
         // ==========================================
         function submitAnswer() {
             const q = questions[currentIndex];
@@ -759,7 +684,6 @@
             const userText = inputEl.value.trim();
 
             if (!userText) {
-                // Gentle shake animation if empty
                 inputEl.classList.add('border-rose-400', 'ring-4', 'ring-rose-500/20');
                 inputEl.placeholder = "Please type at least one word before submitting!";
                 setTimeout(() => {
@@ -772,7 +696,6 @@
             const result = gradeAnswer(userText, q.func);
             const accuracy = result.maxPoints > 0 ? (result.earnedPoints / result.maxPoints) : 0;
 
-            // Update streak
             if (accuracy >= 0.7) {
                 streak++;
                 if (streak > bestStreak) bestStreak = streak;
@@ -780,7 +703,6 @@
                 streak = 0;
             }
 
-            // Save progress
             userProgress[q.id] = {
                 earnedPoints: result.earnedPoints,
                 maxPoints: result.maxPoints,
@@ -790,10 +712,7 @@
                 submitted: true
             };
 
-            // Motivational celebration & sound effects
             triggerMotivationAndEffects(accuracy, result.earnedPoints, result.maxPoints);
-
-            // Re-render current card in graded mode
             renderCurrentQuestion();
         }
 
@@ -832,7 +751,6 @@
                 headline.textContent = 'Review the Red Words & Retry!';
             }
 
-            // Render Reference Function Words: Green text for correct, Red text for missed
             const refContainer = document.getElementById('graded-reference-words');
             refContainer.innerHTML = gradedRef.map(token => {
                 if (token.isCorrect) {
@@ -842,7 +760,6 @@
                 }
             }).join(' ');
 
-            // Render User Typed Words: Green text for matched, Red text for unmatched/wrong
             const userContainer = document.getElementById('graded-user-words');
             if (gradedUser.length === 0) {
                 userContainer.innerHTML = `<span class="text-slate-400 italic">No valid words entered.</span>`;
@@ -866,22 +783,14 @@
                 msg.textContent = `PERFECTION! All ${max} words nailed! You're unstoppable!`;
                 playSuccessSound(true);
                 if (typeof confetti === 'function') {
-                    confetti({
-                        particleCount: 75,
-                        spread: 65,
-                        origin: { y: 0.65 }
-                    });
+                    confetti({ particleCount: 75, spread: 65, origin: { y: 0.65 } });
                 }
             } else if (accuracy >= 0.75) {
                 mascot.textContent = '🐸';
                 msg.textContent = `Awesome work! +${earned} points added! Streak is at ${streak}!`;
                 playSuccessSound(false);
                 if (typeof confetti === 'function') {
-                    confetti({
-                        particleCount: 35,
-                        spread: 50,
-                        origin: { y: 0.7 }
-                    });
+                    confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 } });
                 }
             } else if (accuracy >= 0.4) {
                 mascot.textContent = '💡';
@@ -895,14 +804,14 @@
         }
 
         // ==========================================
-        // 7. RETRY, NAVIGATION & STUDY TOOLS
+        // 7. RETRY & NAVIGATION TOOLS
         // ==========================================
         function retryCurrentQuestion() {
             const q = questions[currentIndex];
             playRetrySound();
             delete userProgress[q.id];
             document.getElementById('mascot-emoji').textContent = '🔄';
-            document.getElementById('motivation-text').textContent = `Round 2 on ${q.structure}! You've got this—aim for all green words!`;
+            document.getElementById('motivation-text').textContent = `Round 2 on ${q.structure}! Aim for all green words!`;
             renderCurrentQuestion();
         }
 
@@ -937,7 +846,6 @@
         function showHint() {
             const q = questions[currentIndex];
             const words = q.func.split(/\s+/);
-            // Reveal first 3 words and masked initials of remaining words
             const hintPreview = words.map((w, idx) => {
                 if (idx < 3) return w;
                 const clean = w.replace(/[^a-zA-Z0-9]/g, '');
@@ -950,24 +858,22 @@
 
         function toggleShuffle() {
             isShuffled = !isShuffled;
-            const currentId = questions[currentIndex].id;
+            const currentId = questions[currentIndex]?.id;
 
-            if (isShuffled) {
-                questions = [...ANATOMY_DATA].sort(() => Math.random() - 0.5);
-                document.getElementById('shuffle-label').textContent = 'Order: Shuffled';
-                document.getElementById('btn-shuffle').classList.add('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
-            } else {
-                questions = [...ANATOMY_DATA];
-                document.getElementById('shuffle-label').textContent = 'Order: Seq';
-                document.getElementById('btn-shuffle').classList.remove('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+            filterQuestionsByCategory(currentCategory);
+
+            if (currentId) {
+                const newIdx = questions.findIndex(item => item.id === currentId);
+                if (newIdx >= 0) currentIndex = newIdx;
             }
 
-            // Keep user on the same structure card after shuffling
-            const newIdx = questions.findIndex(item => item.id === currentId);
-            currentIndex = newIdx >= 0 ? newIdx : 0;
-
-            populateQuestionSelector();
-            renderCurrentQuestion();
+            document.getElementById('shuffle-label').textContent = isShuffled ? 'Order: Shuffled' : 'Order: Seq';
+            const btn = document.getElementById('btn-shuffle');
+            if (isShuffled) {
+                btn.classList.add('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+            } else {
+                btn.classList.remove('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+            }
         }
 
         function toggleSound() {
@@ -976,32 +882,43 @@
         }
 
         function toggleReferenceModal() {
-            const modal = document.getElementById('reference-modal');
-            modal.classList.toggle('hidden');
+            document.getElementById('reference-modal').classList.toggle('hidden');
         }
 
         function populateReferenceModal() {
             const container = document.getElementById('reference-list-container');
-            container.innerHTML = ANATOMY_DATA.map((item, i) => `
-                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-emerald-300 transition">
-                    <div class="flex items-center justify-between gap-2 mb-1">
-                        <span class="font-display font-bold text-emerald-800 text-base">${i + 1}. ${escapeHtml(item.structure)}</span>
-                        <span class="text-xs font-semibold text-slate-400">${tokenizeText(item.func).length} words</span>
+            const cats = getCategories().filter(c => c !== "All Systems");
+
+            container.innerHTML = cats.map(cat => {
+                const items = ANATOMY_DATA.filter(i => i.category === cat);
+                return `
+                    <div class="mb-4">
+                        <h4 class="font-display font-bold text-emerald-800 text-lg border-b border-emerald-200 pb-1 mb-2">${cat}</h4>
+                        <div class="space-y-2">
+                            ${items.map((item, i) => `
+                                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-emerald-300 transition">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <span class="font-bold text-slate-900 text-sm">${item.structure}</span>
+                                        <span class="text-xs font-semibold text-slate-400">${tokenizeText(item.func).length} words</span>
+                                    </div>
+                                    <p class="text-sm text-slate-700 leading-relaxed">${escapeHtml(item.func)}</p>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                    <p class="text-sm text-slate-700 leading-relaxed">${escapeHtml(item.func)}</p>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function populateQuestionSelector() {
             const selector = document.getElementById('question-selector');
             selector.innerHTML = questions.map((q, idx) => `
-                <option value="${idx}">${idx + 1}. ${escapeHtml(q.structure)}</option>
+                <option value="${idx}">${idx + 1}. [${q.category}] ${escapeHtml(q.structure)}</option>
             `).join('');
         }
 
         // ==========================================
-        // 8. FINAL SUMMARY & FULL QUIZ RESTART
+        // 8. SUMMARY & FULL RESTART
         // ==========================================
         function finishQuizEarly() {
             showSummaryScreen();
@@ -1028,26 +945,21 @@
             document.getElementById('summary-accuracy').textContent = `${overallAcc}%`;
             document.getElementById('summary-best-streak').textContent = bestStreak;
 
-            // Rank & motivational message
             const rankTitle = document.getElementById('summary-rank-title');
             const rankMsg = document.getElementById('summary-motivation-msg');
 
             if (overallAcc >= 90) {
                 rankTitle.textContent = "👑 Grand Master Amphibian Biologist!";
-                rankMsg.textContent = "Phenomenal mastery! You know the frog's internal organ functions inside and out!";
+                rankMsg.textContent = "Phenomenal mastery across all systems!";
                 if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
             } else if (overallAcc >= 70) {
                 rankTitle.textContent = "🔬 Senior Dissection Specialist!";
-                rankMsg.textContent = "Awesome job! You've mastered a huge portion of the structures. Retry any missed ones to hit 100%!";
-            } else if (overallAcc >= 40) {
-                rankTitle.textContent = "🐸 Rising Biology Scholar!";
-                rankMsg.textContent = "Solid progress! Every word earns points—hit Retry to turn those red words into green!";
+                rankMsg.textContent = "Awesome job! You've mastered a huge portion of the anatomical structures.";
             } else {
                 rankTitle.textContent = "🌱 Lab Explorer in Training!";
-                rankMsg.textContent = "Great warm-up! Review the Study Sheet or retry individual structures to build your word-for-word recall!";
+                rankMsg.textContent = "Great warm-up! Review the Study Sheet or retry individual structures to build recall.";
             }
 
-            // Populate breakdown list
             const listEl = document.getElementById('summary-breakdown-list');
             listEl.innerHTML = questions.map((q, idx) => {
                 const prog = userProgress[q.id];
@@ -1066,6 +978,7 @@
                     <div class="flex items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/80">
                         <div class="truncate">
                             <span class="font-bold text-slate-800 text-sm">${idx + 1}. ${escapeHtml(q.structure)}</span>
+                            <span class="text-xs text-slate-500 block">${q.category}</span>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <span class="text-xs font-bold px-2.5 py-1 rounded-full ${badgeClass}">${statusText}</span>
@@ -1096,10 +1009,7 @@
             streak = 0;
             bestStreak = 0;
             currentIndex = 0;
-            if (isShuffled) {
-                questions = [...ANATOMY_DATA].sort(() => Math.random() - 0.5);
-                populateQuestionSelector();
-            }
+            filterQuestionsByCategory(currentCategory);
             document.getElementById('mascot-emoji').textContent = '🚀';
             document.getElementById('motivation-text').textContent = 'Fresh start! Let’s beat your previous high score!';
             returnToQuiz();
@@ -1114,7 +1024,6 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // Start on load
         window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
