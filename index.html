@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frog Internal Anatomy Quiz | BioLab Mastery</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Fredoka for fun motivational headers -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #e0f2fe 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .font-display {
+            font-family: 'Fredoka', sans-serif;
+        }
+        /* Custom Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.92); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        }
+        .glow-emerald {
+            animation: pulseGlow 2s infinite;
+        }
+        /* Custom Scrollbar for Study Sheet Modal */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-emerald-200 selection:text-emerald-900">
+
+    <!-- Top Navigation & Live Stats Header -->
+    <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-emerald-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand / Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-2xl shadow-md animate-float">
+                    🐸
+                </div>
+                <div>
+                    <h1 class="font-display text-lg sm:text-xl font-bold text-slate-900 leading-tight">Frog Anatomy Lab</h1>
+                    <p class="text-xs text-emerald-700 font-medium">Word-for-Word Function Mastery</p>
+                </div>
+            </div>
+
+            <!-- Live Stats Bar -->
+            <div class="flex items-center gap-2 sm:gap-4 flex-wrap">
+                <!-- Total Points Badge -->
+                <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full shadow-xs" title="1 Point per exact matching word!">
+                    <span class="text-base">⭐</span>
+                    <span class="text-xs font-semibold text-amber-800 uppercase tracking-wider hidden sm:inline">Points:</span>
+                    <span id="total-points" class="font-display font-bold text-amber-600 text-base sm:text-lg">0</span>
+                    <span class="text-xs text-amber-700 font-medium">/ <span id="max-possible-points">0</span></span>
+                </div>
+
+                <!-- Streak Counter -->
+                <div class="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-full shadow-xs" title="Consecutive questions with >= 70% accuracy">
+                    <span class="text-base">🔥</span>
+                    <span class="text-xs font-semibold text-rose-800 uppercase tracking-wider hidden sm:inline">Streak:</span>
+                    <span id="streak-count" class="font-display font-bold text-rose-600 text-base sm:text-lg">0</span>
+                </div>
+
+                <!-- Controls: Study Reference, Shuffle, Sound -->
+                <div class="flex items-center gap-1.5">
+                    <button id="btn-reference" onclick="toggleReferenceModal()" class="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition text-xs font-semibold flex items-center gap-1" title="View Reference Table">
+                        <span>📖</span>
+                        <span class="hidden md:inline">Study Sheet</span>
+                    </button>
+                    <button id="btn-shuffle" onclick="toggleShuffle()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition text-xs font-semibold flex items-center gap-1" title="Shuffle Questions">
+                        <span>🔀</span>
+                        <span id="shuffle-label" class="hidden md:inline">Order: Seq</span>
+                    </button>
+                    <button id="btn-sound" onclick="toggleSound()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition text-sm" title="Toggle Sound Effects">
+                        🔊
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-emerald-100/70 h-2">
+            <div id="progress-bar" class="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 h-2 transition-all duration-500 ease-out" style="width: 4.34%;"></div>
+        </div>
+    </header>
+
+    <!-- Main Quiz Workspace -->
+    <main class="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+
+        <!-- Motivational Banner -->
+        <div id="motivation-banner" class="mb-5 bg-white/90 border border-emerald-200/80 rounded-2xl p-3.5 sm:px-5 shadow-xs flex items-center justify-between gap-3 animate-pop">
+            <div class="flex items-center gap-3">
+                <span id="mascot-emoji" class="text-2xl sm:text-3xl">🔬</span>
+                <div>
+                    <p id="motivation-text" class="text-sm sm:text-base font-semibold text-slate-800">Ready to dissect some knowledge? Type the function of the structure below!</p>
+                    <p class="text-xs text-slate-500">Every matching word earns <strong class="text-emerald-600">+1 point</strong> (case & punctuation ignored).</p>
+                </div>
+            </div>
+            <div class="text-right shrink-0">
+                <span class="inline-block bg-emerald-100 text-emerald-800 font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full">
+                    Card <span id="current-index-display">1</span> of <span id="total-questions-display">23</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Active Quiz Card -->
+        <section id="quiz-card" class="bg-white rounded-3xl shadow-xl shadow-emerald-900/5 border border-emerald-100 overflow-hidden transition-all duration-300">
+            
+            <!-- Question Header (Structure) -->
+            <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-6 sm:p-8 text-white relative overflow-hidden">
+                <!-- Decorative background SVG -->
+                <svg class="absolute right-0 bottom-0 opacity-10 w-40 h-40 pointer-events-none" viewBox="0 0 200 200" fill="currentColor">
+                    <circle cx="150" cy="150" r="100" />
+                    <circle cx="60" cy="180" r="60" />
+                </svg>
+
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="uppercase tracking-widest text-xs font-bold text-emerald-200 bg-emerald-900/30 px-3 py-1 rounded-full">
+                        Anatomical Structure
+                    </span>
+                    <span id="question-status-badge" class="text-xs font-semibold px-3 py-1 rounded-full bg-white/15 text-white">
+                        Unanswered
+                    </span>
+                </div>
+
+                <h2 id="structure-title" class="font-display text-2xl sm:text-4xl font-bold tracking-tight mt-2 drop-shadow-xs">
+                    Pericardial Sac
+                </h2>
+                <p class="text-emerald-100 text-xs sm:text-sm mt-2 flex items-center gap-2">
+                    <span>💡 Target length: <strong id="expected-word-count" class="text-white underline decoration-emerald-300">17</strong> words</span>
+                    <span>•</span>
+                    <button onclick="showHint()" class="underline hover:text-white transition font-medium cursor-pointer">Need a quick hint?</button>
+                </p>
+
+                <!-- Optional Hint Drawer -->
+                <div id="hint-box" class="hidden mt-3 bg-emerald-950/40 border border-emerald-400/30 rounded-xl p-3 text-xs sm:text-sm text-emerald-50 animate-pop">
+                    <span class="font-bold text-amber-300">Hint:</span> <span id="hint-text"></span>
+                </div>
+            </div>
+
+            <!-- Answer Input & Grading Area -->
+            <div class="p-6 sm:p-8 space-y-6">
+                
+                <!-- Input Form -->
+                <div id="input-section">
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="user-answer-input" class="block text-sm font-bold text-slate-700">
+                            Type the Function of this Structure:
+                        </label>
+                        <span class="text-xs font-medium text-slate-500">
+                            Words typed: <span id="live-word-count" class="font-bold text-emerald-600">0</span>
+                        </span>
+                    </div>
+                    <textarea 
+                        id="user-answer-input" 
+                        rows="4" 
+                        placeholder="Type the complete function here... (Capitalization and punctuation won't hurt your score!)"
+                        class="w-full rounded-2xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15 p-4 text-slate-800 text-base sm:text-lg transition outline-none resize-none bg-slate-50/50 focus:bg-white"
+                    ></textarea>
+
+                    <!-- Action Buttons (Before Submit) -->
+                    <div id="pre-submit-actions" class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        <button onclick="clearInput()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+                            Clear Text
+                        </button>
+                        <button id="btn-submit" onclick="submitAnswer()" class="px-6 sm:px-8 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-display font-bold text-base sm:text-lg shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-98 transition flex items-center gap-2 cursor-pointer glow-emerald">
+                            <span>Submit Answer</span>
+                            <span>🚀</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Graded Feedback Area (Shown after Submit) -->
+                <div id="feedback-section" class="hidden space-y-5 animate-pop">
+                    
+                    <!-- Score Summary Card for this Question -->
+                    <div id="question-result-banner" class="rounded-2xl p-4 sm:p-5 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3.5">
+                            <div id="result-icon" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-xs">
+                                🎉
+                            </div>
+                            <div>
+                                <h3 id="result-headline" class="font-display font-bold text-lg sm:text-xl">Awesome Job!</h3>
+                                <p id="result-subtext" class="text-xs sm:text-sm opacity-90">You matched 15 out of 17 words!</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <div class="text-right">
+                                <span class="block text-xs uppercase font-bold tracking-wider opacity-75">Points Earned</span>
+                                <span id="question-points-earned" class="font-display text-2xl font-bold">+15 pts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Color-Coded Word-by-Word Breakdown -->
+                    <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200/90 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-600">
+                                Word-by-Word Answer Breakdown
+                            </span>
+                            <div class="flex items-center gap-3 text-xs font-semibold">
+                                <span class="flex items-center gap-1 text-emerald-700">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Correct Word (+1 pt)
+                                </span>
+                                <span class="flex items-center gap-1 text-rose-700">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Missed / Wrong Word
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Official Function with Green (Correct) & Red (Missed) Highlighting -->
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 mb-2">Expected Function (Green = Typed Correctly, Red = Missed):</p>
+                            <div id="graded-reference-words" class="leading-relaxed text-base sm:text-lg font-medium flex flex-wrap gap-1.5">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- User's Typed Submission Comparison -->
+                        <div class="pt-3 border-t border-slate-200/80">
+                            <p class="text-xs font-semibold text-slate-500 mb-2">Your Typed Answer (Green = Matched, Red = Extra/Unmatched):</p>
+                            <div id="graded-user-words" class="leading-relaxed text-sm sm:text-base flex flex-wrap gap-1.5">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post-Submit Actions: Retry Question & Next Question -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                        <button onclick="retryCurrentQuestion()" class="px-5 py-3 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-display font-bold text-sm sm:text-base border border-amber-300 transition flex items-center gap-2 cursor-pointer active:scale-98">
+                            <span>🔄</span>
+                            <span>Retry This Question</span>
+                        </button>
+
+                        <button id="btn-next-after-submit" onclick="nextQuestion()" class="px-6 sm:px-8 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-display font-bold text-sm sm:text-base shadow-md transition flex items-center gap-2 cursor-pointer active:scale-98">
+                            <span id="next-btn-label">Next Structure</span>
+                            <span>➡️</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer Card Navigation -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                <button id="btn-prev" onclick="prevQuestion()" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-sm transition disabled:opacity-40 disabled:pointer-events-none flex items-center gap-1.5 cursor-pointer">
+                    <span>⬅️</span> Previous
+                </button>
+
+                <!-- Quick Question Dots / Jump Selector -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-slate-500 hidden sm:inline">Jump to:</span>
+                    <select id="question-selector" onchange="jumpToQuestion(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 max-w-[200px] sm:max-w-xs truncate">
+                        <!-- Options populated via JS -->
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="finishQuizEarly()" class="px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-semibold text-xs sm:text-sm transition cursor-pointer">
+                        🏆 Summary
+                    </button>
+                    <button id="btn-next" onclick="nextQuestion()" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-sm transition flex items-center gap-1.5 cursor-pointer">
+                        Next <span>➡️</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Summary & Full Retry Screen (Hidden until triggered or completed) -->
+        <section id="summary-section" class="hidden bg-white rounded-3xl shadow-xl border border-emerald-100 p-6 sm:p-10 text-center space-y-6 animate-pop">
+            <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-4xl shadow-lg animate-float">
+                🏆
+            </div>
+            <div>
+                <span class="uppercase tracking-widest text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                    Lab Session Complete
+                </span>
+                <h2 class="font-display text-3xl sm:text-4xl font-bold text-slate-900 mt-2" id="summary-rank-title">
+                    Master Amphibian Biologist!
+                </h2>
+                <p id="summary-motivation-msg" class="text-slate-600 max-w-xl mx-auto mt-2 text-sm sm:text-base">
+                    Incredible effort! Every word you master brings you closer to acing your biology practical.
+                </p>
+            </div>
+
+            <!-- Score Breakdown Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                    <span class="text-xs font-bold uppercase text-amber-800">Total Word Points</span>
+                    <div class="font-display text-3xl font-bold text-amber-600 mt-1">
+                        <span id="summary-points">0</span> <span class="text-base font-normal text-amber-700">/ <span id="summary-max-points">0</span></span>
+                    </div>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                    <span class="text-xs font-bold uppercase text-emerald-800">Overall Accuracy</span>
+                    <div class="font-display text-3xl font-bold text-emerald-600 mt-1" id="summary-accuracy">
+                        0%
+                    </div>
+                </div>
+                <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+                    <span class="text-xs font-bold uppercase text-rose-800">Best Streak</span>
+                    <div class="font-display text-3xl font-bold text-rose-600 mt-1">
+                        🔥 <span id="summary-best-streak">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per-Question Review List -->
+            <div class="max-w-3xl mx-auto text-left bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-200">
+                <h3 class="font-display font-bold text-lg text-slate-800 mb-3">Structure-by-Structure Breakdown</h3>
+                <div id="summary-breakdown-list" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Full Retry & Return Buttons -->
+            <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+                <button onclick="returnToQuiz()" class="px-6 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-display font-bold text-base transition cursor-pointer">
+                    ⬅️ Back to Questions
+                </button>
+                <button onclick="restartFullQuiz()" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-display font-bold text-base shadow-lg shadow-emerald-500/30 transition flex items-center gap-2 cursor-pointer">
+                    <span>🔄</span>
+                    <span>Retry Entire Quiz</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Study Reference Modal -->
+    <div id="reference-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-emerald-100 animate-pop">
+            <div class="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">🐸</span>
+                    <div>
+                        <h3 class="font-display font-bold text-xl text-slate-900">Frog Internal Anatomy Reference Sheet</h3>
+                        <p class="text-xs text-slate-500">Review the 23 structures and exact functions anytime.</p>
+                    </div>
+                </div>
+                <button onclick="toggleReferenceModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold cursor-pointer">
+                    ✕
+                </button>
+            </div>
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-3" id="reference-list-container">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. DATASET: ALL 23 FROG ANATOMY STRUCTURES
+        // ==========================================
+        const ANATOMY_DATA = [
+            {
+                id: 1,
+                structure: "Pericardial Sac",
+                func: "A double-layered membranous sac that encloses and protects the heart. It reduces friction during heart contractions."
+            },
+            {
+                id: 2,
+                structure: "Heart",
+                func: "Pumps blood throughout the body. Frogs have a three-chambered heart consisting of two atria and one ventricle."
+            },
+            {
+                id: 3,
+                structure: "Lung",
+                func: "Performs gas exchange by absorbing oxygen and releasing carbon dioxide. Frogs also use their skin and buccal cavity for respiration."
+            },
+            {
+                id: 4,
+                structure: "Liver",
+                func: "Produces bile, stores glycogen and nutrients, detoxifies harmful substances, and participates in metabolism."
+            },
+            {
+                id: 5,
+                structure: "Gall Bladder",
+                func: "Stores and concentrates bile produced by the liver and releases it into the duodenum during digestion."
+            },
+            {
+                id: 6,
+                structure: "Hepato-duodenal Omentum",
+                func: "A thin peritoneal membrane connecting the liver to the duodenum. It supports blood vessels, nerves, and bile ducts serving digestive organs."
+            },
+            {
+                id: 7,
+                structure: "Mesenterium (Mesentery Proper)",
+                func: "A membrane that suspends the intestines from the dorsal body wall and carries blood vessels, lymphatics, and nerves to the intestines."
+            },
+            {
+                id: 8,
+                structure: "Fat Bodies (Corpora Adiposa)",
+                func: "Yellow finger-like structures that store fat reserves during hibernation, estivation, and reproduction."
+            },
+            {
+                id: 9,
+                structure: "Pancreas",
+                func: "Produces digestive enzymes that enter the duodenum and hormones (insulin and glucagon) that regulate blood glucose levels."
+            },
+            {
+                id: 10,
+                structure: "Stomach",
+                func: "Temporarily stores food and initiates mechanical and chemical digestion through muscular contractions and gastric secretions."
+            },
+            {
+                id: 11,
+                structure: "Pyloric Constriction (Pyloric Sphincter)",
+                func: "Muscular valve controlling the passage of partially digested food (chyme) from the stomach into the duodenum."
+            },
+            {
+                id: 12,
+                structure: "Duodenum",
+                func: "The first part of the small intestine where bile and pancreatic enzymes mix with food to continue digestion."
+            },
+            {
+                id: 13,
+                structure: "Ileum",
+                func: "The second and longest portion of the small intestine. It is the primary site for absorption of digested nutrients."
+            },
+            {
+                id: 14,
+                structure: "Small Intestine",
+                func: "Completes digestion and absorbs nutrients into the bloodstream. Includes the duodenum and ileum in frogs."
+            },
+            {
+                id: 15,
+                structure: "Spleen",
+                func: "Filters blood, removes worn-out blood cells, stores blood, and contributes to immune functions."
+            },
+            {
+                id: 16,
+                structure: "Peritoneum",
+                func: "A thin serous membrane lining the body cavity and covering the organs. It protects organs and reduces friction between them."
+            },
+            {
+                id: 17,
+                structure: "Large Intestine (Colon/Rectum)",
+                func: "Absorbs water and salts from undigested material and transports fecal matter toward the cloaca."
+            },
+            {
+                id: 18,
+                structure: "Kidney",
+                func: "Filters blood, removes nitrogenous wastes, regulates water and electrolyte balance, and produces urine."
+            },
+            {
+                id: 19,
+                structure: "Adrenal Gland",
+                func: "Endocrine tissue associated with the kidneys that secretes hormones involved in stress responses and regulation of salt-water balance."
+            },
+            {
+                id: 20,
+                structure: "Testis",
+                func: "Produces sperm cells and male sex hormones involved in reproduction."
+            },
+            {
+                id: 21,
+                structure: "Urinary Bladder",
+                func: "Stores urine before it is discharged through the cloaca. It may also assist in water storage and reabsorption."
+            },
+            {
+                id: 22,
+                structure: "Cloaca",
+                func: "A common chamber receiving products from the digestive, urinary, and reproductive systems before elimination."
+            },
+            {
+                id: 23,
+                structure: "Cloacal Opening (Vent)",
+                func: "External opening through which feces, urine, and reproductive products are expelled from the body."
+            }
+        ];
+
+        // ==========================================
+        // 2. APPLICATION STATE
+        // ==========================================
+        let questions = [...ANATOMY_DATA];
+        let currentIndex = 0;
+        let isShuffled = false;
+        let soundEnabled = true;
+        let streak = 0;
+        let bestStreak = 0;
+
+        // Stores user progress keyed by structure id:
+        // { earnedPoints, maxPoints, userRawText, refTokens, userTokens, submitted }
+        let userProgress = {};
+
+        // ==========================================
+        // 3. WEB AUDIO API SOUND EFFECTS (NO EXTERNAL URLS)
+        // ==========================================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(freq, type, duration, delay = 0) {
+            if (!soundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + delay);
+                osc.stop(audioCtx.currentTime + delay + duration);
+            } catch (e) {
+                // Ignore audio errors if blocked by browser autoplay policy
+            }
+        }
+
+        function playSuccessSound(perfect = false) {
+            playTone(523.25, 'sine', 0.15, 0);       // C5
+            playTone(659.25, 'sine', 0.15, 0.08);    // E5
+            playTone(783.99, 'sine', 0.25, 0.16);    // G5
+            if (perfect) {
+                playTone(1046.50, 'triangle', 0.35, 0.24); // C6
+            }
+        }
+
+        function playPartialSound() {
+            playTone(440, 'sine', 0.15, 0);
+            playTone(523.25, 'sine', 0.2, 0.1);
+        }
+
+        function playRetrySound() {
+            playTone(392.00, 'sine', 0.12, 0);
+            playTone(329.63, 'sine', 0.18, 0.08);
+        }
+
+        // ==========================================
+        // 4. WORD TOKENIZATION & CASE-INSENSITIVE GRADING
+        // ==========================================
+        /**
+         * Normalizes a word for case-insensitive and punctuation-forgiving matching.
+         * Keeps internal hyphens (like "double-layered" or "three-chambered") or splits cleanly,
+         * while stripping leading/trailing punctuation like periods, commas, parentheses.
+         */
+        function normalizeWord(word) {
+            return word
+                .toLowerCase()
+                .replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+        }
+
+        /**
+         * Splits text into displayable word tokens while preserving original text for display
+         * and normalized form for matching.
+         */
+        function tokenizeText(text) {
+            if (!text || !text.trim()) return [];
+            return text
+                .trim()
+                .split(/\s+/)
+                .map(raw => ({
+                    raw: raw,
+                    norm: normalizeWord(raw)
+                }))
+                .filter(t => t.norm.length > 0);
+        }
+
+        /**
+         * Grades user's answer against the reference function.
+         * Uses frequency map + order-aware greedy matching so each matching word
+         * awards +1 point without double-counting repeated filler words unfairly.
+         */
+        function gradeAnswer(userText, referenceText) {
+            const refTokens = tokenizeText(referenceText);
+            const userTokens = tokenizeText(userText);
+
+            // Count available normalized words in user's input
+            const userWordCounts = {};
+            userTokens.forEach(t => {
+                userWordCounts[t.norm] = (userWordCounts[t.norm] || 0) + 1;
+            });
+
+            // Mark reference words as matched (true) or missed (false)
+            let earnedPoints = 0;
+            const gradedRef = refTokens.map(refTok => {
+                if (userWordCounts[refTok.norm] && userWordCounts[refTok.norm] > 0) {
+                    userWordCounts[refTok.norm]--;
+                    earnedPoints++;
+                    return { raw: refTok.raw, norm: refTok.norm, isCorrect: true };
+                } else {
+                    return { raw: refTok.raw, norm: refTok.norm, isCorrect: false };
+                }
+            });
+
+            // Also mark user's typed words as matched vs extra/wrong
+            const refWordCounts = {};
+            refTokens.forEach(t => {
+                refWordCounts[t.norm] = (refWordCounts[t.norm] || 0) + 1;
+            });
+
+            const gradedUser = userTokens.map(uTok => {
+                if (refWordCounts[uTok.norm] && refWordCounts[uTok.norm] > 0) {
+                    refWordCounts[uTok.norm]--;
+                    return { raw: uTok.raw, norm: uTok.norm, isCorrect: true };
+                } else {
+                    return { raw: uTok.raw, norm: uTok.norm, isCorrect: false };
+                }
+            });
+
+            return {
+                earnedPoints,
+                maxPoints: refTokens.length,
+                gradedRef,
+                gradedUser
+            };
+        }
+
+        // ==========================================
+        // 5. INITIALIZATION & UI RENDERING
+        // ==========================================
+        function initApp() {
+            populateReferenceModal();
+            populateQuestionSelector();
+            updateGlobalScoreboard();
+            renderCurrentQuestion();
+
+            // Live word counter on textarea input
+            const inputEl = document.getElementById('user-answer-input');
+            inputEl.addEventListener('input', () => {
+                const count = tokenizeText(inputEl.value).length;
+                document.getElementById('live-word-count').textContent = count;
+            });
+
+            // Allow Ctrl+Enter or Cmd+Enter to submit quickly
+            inputEl.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    const q = questions[currentIndex];
+                    if (!userProgress[q.id]?.submitted) {
+                        submitAnswer();
+                    } else {
+                        nextQuestion();
+                    }
+                }
+            });
+        }
+
+        function getMaxPossiblePoints() {
+            return ANATOMY_DATA.reduce((sum, item) => sum + tokenizeText(item.func).length, 0);
+        }
+
+        function updateGlobalScoreboard() {
+            let totalEarned = 0;
+            Object.values(userProgress).forEach(entry => {
+                if (entry && entry.submitted) {
+                    totalEarned += entry.earnedPoints;
+                }
+            });
+
+            const maxTotal = getMaxPossiblePoints();
+            document.getElementById('total-points').textContent = totalEarned;
+            document.getElementById('max-possible-points').textContent = maxTotal;
+            document.getElementById('streak-count').textContent = streak;
+
+            // Progress bar based on current position or completed count
+            const pct = ((currentIndex + 1) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+        }
+
+        function renderCurrentQuestion() {
+            const q = questions[currentIndex];
+            const saved = userProgress[q.id];
+            const refWordCount = tokenizeText(q.func).length;
+
+            // Update card headers
+            document.getElementById('current-index-display').textContent = currentIndex + 1;
+            document.getElementById('total-questions-display').textContent = questions.length;
+            document.getElementById('structure-title').textContent = q.structure;
+            document.getElementById('expected-word-count').textContent = refWordCount;
+            document.getElementById('question-selector').value = currentIndex;
+
+            // Hide hint box on switch
+            document.getElementById('hint-box').classList.add('hidden');
+
+            // Update Previous button state
+            document.getElementById('btn-prev').disabled = currentIndex === 0;
+
+            // Update Next button text on last question
+            const isLast = currentIndex === questions.length - 1;
+            document.getElementById('next-btn-label').textContent = isLast ? 'View Final Score' : 'Next Structure';
+
+            const inputEl = document.getElementById('user-answer-input');
+            const preSubmitActions = document.getElementById('pre-submit-actions');
+            const feedbackSection = document.getElementById('feedback-section');
+            const statusBadge = document.getElementById('question-status-badge');
+
+            if (saved && saved.submitted) {
+                // Already answered: show locked input and graded visual feedback
+                inputEl.value = saved.userRawText;
+                inputEl.disabled = true;
+                inputEl.classList.add('bg-slate-100', 'text-slate-600');
+                document.getElementById('live-word-count').textContent = tokenizeText(saved.userRawText).length;
+
+                preSubmitActions.classList.add('hidden');
+                feedbackSection.classList.remove('hidden');
+
+                statusBadge.textContent = `Scored: ${saved.earnedPoints}/${saved.maxPoints} pts`;
+                statusBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-400 text-slate-900';
+
+                renderGradedFeedback(saved);
+            } else {
+                // Unanswered or retried: enable fresh typing
+                inputEl.value = '';
+                inputEl.disabled = false;
+                inputEl.classList.remove('bg-slate-100', 'text-slate-600');
+                document.getElementById('live-word-count').textContent = '0';
+
+                preSubmitActions.classList.remove('hidden');
+                feedbackSection.classList.add('hidden');
+
+                statusBadge.textContent = 'Unanswered';
+                statusBadge.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-white/15 text-white';
+
+                setTimeout(() => inputEl.focus(), 50);
+            }
+
+            updateGlobalScoreboard();
+        }
+
+        // ==========================================
+        // 6. SUBMITTING, GRADING & VISUAL FEEDBACK
+        // ==========================================
+        function submitAnswer() {
+            const q = questions[currentIndex];
+            const inputEl = document.getElementById('user-answer-input');
+            const userText = inputEl.value.trim();
+
+            if (!userText) {
+                // Gentle shake animation if empty
+                inputEl.classList.add('border-rose-400', 'ring-4', 'ring-rose-500/20');
+                inputEl.placeholder = "Please type at least one word before submitting!";
+                setTimeout(() => {
+                    inputEl.classList.remove('border-rose-400', 'ring-4', 'ring-rose-500/20');
+                }, 1200);
+                inputEl.focus();
+                return;
+            }
+
+            const result = gradeAnswer(userText, q.func);
+            const accuracy = result.maxPoints > 0 ? (result.earnedPoints / result.maxPoints) : 0;
+
+            // Update streak
+            if (accuracy >= 0.7) {
+                streak++;
+                if (streak > bestStreak) bestStreak = streak;
+            } else {
+                streak = 0;
+            }
+
+            // Save progress
+            userProgress[q.id] = {
+                earnedPoints: result.earnedPoints,
+                maxPoints: result.maxPoints,
+                userRawText: userText,
+                gradedRef: result.gradedRef,
+                gradedUser: result.gradedUser,
+                submitted: true
+            };
+
+            // Motivational celebration & sound effects
+            triggerMotivationAndEffects(accuracy, result.earnedPoints, result.maxPoints);
+
+            // Re-render current card in graded mode
+            renderCurrentQuestion();
+        }
+
+        function renderGradedFeedback(saved) {
+            const { earnedPoints, maxPoints, gradedRef, gradedUser } = saved;
+            const pct = maxPoints > 0 ? Math.round((earnedPoints / maxPoints) * 100) : 0;
+
+            const banner = document.getElementById('question-result-banner');
+            const icon = document.getElementById('result-icon');
+            const headline = document.getElementById('result-headline');
+            const subtext = document.getElementById('result-subtext');
+            const ptsEl = document.getElementById('question-points-earned');
+
+            ptsEl.textContent = `+${earnedPoints} / ${maxPoints} pts`;
+            subtext.textContent = `You matched ${earnedPoints} out of ${maxPoints} words (${pct}% accuracy).`;
+
+            if (pct === 100) {
+                banner.className = 'rounded-2xl p-4 sm:p-5 border bg-emerald-50 border-emerald-300 text-emerald-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4';
+                icon.className = 'w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shrink-0 shadow-xs';
+                icon.textContent = '🌟';
+                headline.textContent = 'Flawless 100% Match!';
+            } else if (pct >= 70) {
+                banner.className = 'rounded-2xl p-4 sm:p-5 border bg-teal-50 border-teal-300 text-teal-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4';
+                icon.className = 'w-12 h-12 rounded-2xl bg-teal-500 text-white flex items-center justify-center text-2xl shrink-0 shadow-xs';
+                icon.textContent = '🎉';
+                headline.textContent = 'Great Job! Strong Recall!';
+            } else if (pct >= 40) {
+                banner.className = 'rounded-2xl p-4 sm:p-5 border bg-amber-50 border-amber-300 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4';
+                icon.className = 'w-12 h-12 rounded-2xl bg-amber-400 text-slate-900 flex items-center justify-center text-2xl shrink-0 shadow-xs';
+                icon.textContent = '💪';
+                headline.textContent = 'Good Effort! Keep Building!';
+            } else {
+                banner.className = 'rounded-2xl p-4 sm:p-5 border bg-rose-50 border-rose-300 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4';
+                icon.className = 'w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-2xl shrink-0 shadow-xs';
+                icon.textContent = '🧬';
+                headline.textContent = 'Review the Red Words & Retry!';
+            }
+
+            // Render Reference Function Words: Green text for correct, Red text for missed
+            const refContainer = document.getElementById('graded-reference-words');
+            refContainer.innerHTML = gradedRef.map(token => {
+                if (token.isCorrect) {
+                    return `<span class="px-2 py-0.5 rounded-lg bg-emerald-100/90 text-emerald-700 font-bold border border-emerald-300/80">${escapeHtml(token.raw)}</span>`;
+                } else {
+                    return `<span class="px-2 py-0.5 rounded-lg bg-rose-100/90 text-rose-600 font-bold border border-rose-300/80">${escapeHtml(token.raw)}</span>`;
+                }
+            }).join(' ');
+
+            // Render User Typed Words: Green text for matched, Red text for unmatched/wrong
+            const userContainer = document.getElementById('graded-user-words');
+            if (gradedUser.length === 0) {
+                userContainer.innerHTML = `<span class="text-slate-400 italic">No valid words entered.</span>`;
+            } else {
+                userContainer.innerHTML = gradedUser.map(token => {
+                    if (token.isCorrect) {
+                        return `<span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold">${escapeHtml(token.raw)}</span>`;
+                    } else {
+                        return `<span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 font-semibold line-through decoration-rose-400">${escapeHtml(token.raw)}</span>`;
+                    }
+                }).join(' ');
+            }
+        }
+
+        function triggerMotivationAndEffects(accuracy, earned, max) {
+            const mascot = document.getElementById('mascot-emoji');
+            const msg = document.getElementById('motivation-text');
+
+            if (accuracy === 1) {
+                mascot.textContent = '👑';
+                msg.textContent = `PERFECTION! All ${max} words nailed! You're unstoppable!`;
+                playSuccessSound(true);
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 75,
+                        spread: 65,
+                        origin: { y: 0.65 }
+                    });
+                }
+            } else if (accuracy >= 0.75) {
+                mascot.textContent = '🐸';
+                msg.textContent = `Awesome work! +${earned} points added! Streak is at ${streak}!`;
+                playSuccessSound(false);
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 35,
+                        spread: 50,
+                        origin: { y: 0.7 }
+                    });
+                }
+            } else if (accuracy >= 0.4) {
+                mascot.textContent = '💡';
+                msg.textContent = `Nice start (+${earned} pts)! Check the red words below and hit Retry to boost your score!`;
+                playPartialSound();
+            } else {
+                mascot.textContent = '🔥';
+                msg.textContent = `Don't give up! Study the green/red comparison and tap "Retry This Question" to master it!`;
+                playPartialSound();
+            }
+        }
+
+        // ==========================================
+        // 7. RETRY, NAVIGATION & STUDY TOOLS
+        // ==========================================
+        function retryCurrentQuestion() {
+            const q = questions[currentIndex];
+            playRetrySound();
+            delete userProgress[q.id];
+            document.getElementById('mascot-emoji').textContent = '🔄';
+            document.getElementById('motivation-text').textContent = `Round 2 on ${q.structure}! You've got this—aim for all green words!`;
+            renderCurrentQuestion();
+        }
+
+        function clearInput() {
+            const inputEl = document.getElementById('user-answer-input');
+            inputEl.value = '';
+            document.getElementById('live-word-count').textContent = '0';
+            inputEl.focus();
+        }
+
+        function nextQuestion() {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderCurrentQuestion();
+            } else {
+                showSummaryScreen();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCurrentQuestion();
+            }
+        }
+
+        function jumpToQuestion(indexStr) {
+            currentIndex = parseInt(indexStr, 10);
+            renderCurrentQuestion();
+        }
+
+        function showHint() {
+            const q = questions[currentIndex];
+            const words = q.func.split(/\s+/);
+            // Reveal first 3 words and masked initials of remaining words
+            const hintPreview = words.map((w, idx) => {
+                if (idx < 3) return w;
+                const clean = w.replace(/[^a-zA-Z0-9]/g, '');
+                return clean ? clean[0] + '•'.repeat(Math.max(1, clean.length - 1)) : w;
+            }).join(' ');
+
+            document.getElementById('hint-text').textContent = hintPreview;
+            document.getElementById('hint-box').classList.remove('hidden');
+        }
+
+        function toggleShuffle() {
+            isShuffled = !isShuffled;
+            const currentId = questions[currentIndex].id;
+
+            if (isShuffled) {
+                questions = [...ANATOMY_DATA].sort(() => Math.random() - 0.5);
+                document.getElementById('shuffle-label').textContent = 'Order: Shuffled';
+                document.getElementById('btn-shuffle').classList.add('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+            } else {
+                questions = [...ANATOMY_DATA];
+                document.getElementById('shuffle-label').textContent = 'Order: Seq';
+                document.getElementById('btn-shuffle').classList.remove('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+            }
+
+            // Keep user on the same structure card after shuffling
+            const newIdx = questions.findIndex(item => item.id === currentId);
+            currentIndex = newIdx >= 0 ? newIdx : 0;
+
+            populateQuestionSelector();
+            renderCurrentQuestion();
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('btn-sound').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function toggleReferenceModal() {
+            const modal = document.getElementById('reference-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function populateReferenceModal() {
+            const container = document.getElementById('reference-list-container');
+            container.innerHTML = ANATOMY_DATA.map((item, i) => `
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-emerald-300 transition">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="font-display font-bold text-emerald-800 text-base">${i + 1}. ${escapeHtml(item.structure)}</span>
+                        <span class="text-xs font-semibold text-slate-400">${tokenizeText(item.func).length} words</span>
+                    </div>
+                    <p class="text-sm text-slate-700 leading-relaxed">${escapeHtml(item.func)}</p>
+                </div>
+            `).join('');
+        }
+
+        function populateQuestionSelector() {
+            const selector = document.getElementById('question-selector');
+            selector.innerHTML = questions.map((q, idx) => `
+                <option value="${idx}">${idx + 1}. ${escapeHtml(q.structure)}</option>
+            `).join('');
+        }
+
+        // ==========================================
+        // 8. FINAL SUMMARY & FULL QUIZ RESTART
+        // ==========================================
+        function finishQuizEarly() {
+            showSummaryScreen();
+        }
+
+        function showSummaryScreen() {
+            document.getElementById('quiz-card').classList.add('hidden');
+            document.getElementById('motivation-banner').classList.add('hidden');
+            document.getElementById('summary-section').classList.remove('hidden');
+
+            let totalEarned = 0;
+            const maxTotal = getMaxPossiblePoints();
+
+            questions.forEach(q => {
+                if (userProgress[q.id]?.submitted) {
+                    totalEarned += userProgress[q.id].earnedPoints;
+                }
+            });
+
+            const overallAcc = maxTotal > 0 ? Math.round((totalEarned / maxTotal) * 100) : 0;
+
+            document.getElementById('summary-points').textContent = totalEarned;
+            document.getElementById('summary-max-points').textContent = maxTotal;
+            document.getElementById('summary-accuracy').textContent = `${overallAcc}%`;
+            document.getElementById('summary-best-streak').textContent = bestStreak;
+
+            // Rank & motivational message
+            const rankTitle = document.getElementById('summary-rank-title');
+            const rankMsg = document.getElementById('summary-motivation-msg');
+
+            if (overallAcc >= 90) {
+                rankTitle.textContent = "👑 Grand Master Amphibian Biologist!";
+                rankMsg.textContent = "Phenomenal mastery! You know the frog's internal organ functions inside and out!";
+                if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+            } else if (overallAcc >= 70) {
+                rankTitle.textContent = "🔬 Senior Dissection Specialist!";
+                rankMsg.textContent = "Awesome job! You've mastered a huge portion of the structures. Retry any missed ones to hit 100%!";
+            } else if (overallAcc >= 40) {
+                rankTitle.textContent = "🐸 Rising Biology Scholar!";
+                rankMsg.textContent = "Solid progress! Every word earns points—hit Retry to turn those red words into green!";
+            } else {
+                rankTitle.textContent = "🌱 Lab Explorer in Training!";
+                rankMsg.textContent = "Great warm-up! Review the Study Sheet or retry individual structures to build your word-for-word recall!";
+            }
+
+            // Populate breakdown list
+            const listEl = document.getElementById('summary-breakdown-list');
+            listEl.innerHTML = questions.map((q, idx) => {
+                const prog = userProgress[q.id];
+                const maxW = tokenizeText(q.func).length;
+                const earnedW = prog?.submitted ? prog.earnedPoints : 0;
+                const statusText = prog?.submitted ? `${earnedW} / ${maxW} pts` : 'Not attempted';
+                const badgeClass = !prog?.submitted
+                    ? 'bg-slate-200 text-slate-600'
+                    : earnedW === maxW
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        : earnedW > 0
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                            : 'bg-rose-100 text-rose-800 border border-rose-300';
+
+                return `
+                    <div class="flex items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/80">
+                        <div class="truncate">
+                            <span class="font-bold text-slate-800 text-sm">${idx + 1}. ${escapeHtml(q.structure)}</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full ${badgeClass}">${statusText}</span>
+                            <button onclick="jumpFromSummary(${idx})" class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 underline cursor-pointer">
+                                Practice
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function jumpFromSummary(idx) {
+            currentIndex = idx;
+            returnToQuiz();
+        }
+
+        function returnToQuiz() {
+            document.getElementById('summary-section').classList.add('hidden');
+            document.getElementById('quiz-card').classList.remove('hidden');
+            document.getElementById('motivation-banner').classList.remove('hidden');
+            renderCurrentQuestion();
+        }
+
+        function restartFullQuiz() {
+            playRetrySound();
+            userProgress = {};
+            streak = 0;
+            bestStreak = 0;
+            currentIndex = 0;
+            if (isShuffled) {
+                questions = [...ANATOMY_DATA].sort(() => Math.random() - 0.5);
+                populateQuestionSelector();
+            }
+            document.getElementById('mascot-emoji').textContent = '🚀';
+            document.getElementById('motivation-text').textContent = 'Fresh start! Let’s beat your previous high score!';
+            returnToQuiz();
+        }
+
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Start on load
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
